@@ -4,7 +4,7 @@ from utils import preprocess_input, load_model
 import plotly.express as px
 
 # Load the model
-model = load_model("../models/mental_health_model.pkl")
+model = load_model("models/mental_health_model.pkl")
 
 # Check login session
 if 'logged_in' not in st.session_state:
