@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from utils import preprocess_input, load_model
+from app.utils import preprocess_input, load_model
 import plotly.express as px
 
 # Load the model
