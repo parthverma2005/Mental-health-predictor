@@ -4,7 +4,7 @@ import os
 import gdown
 
 def load_model(model_path):
-    file_id = "1hcr1TYRtARLmb9rQBtXTfK6q0zaZCnw4"  # Replace with your actual file ID
+    file_id = "16hV9LsaWk8fl9oj4iXp8MqaV7iE8mota"  # Replace with your actual file ID
     if not os.path.exists(model_path):
         os.makedirs(os.path.dirname(model_path), exist_ok=True)
         url = f"https://drive.google.com/uc?id={file_id}"
