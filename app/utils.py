@@ -4,8 +4,7 @@ import os
 import gdown
 
 def load_model(model_path):
-    # Google Drive File ID for your model
-    file_id = "1hcr1TYRtARLmb9rQBtXTfK6q0zaZCnw4"  # Replace this with your actual file ID
+    file_id = "1hcr1TYRtARLmb9rQBtXTfK6q0zaZCnw4"  # Replace with your actual file ID
     if not os.path.exists(model_path):
         os.makedirs(os.path.dirname(model_path), exist_ok=True)
         url = f"https://drive.google.com/uc?id={file_id}"
@@ -19,6 +18,8 @@ def preprocess_input(family_history, growing_stress, changes_habits, mood_swings
                      coping_struggles, work_interest, social_weakness, self_employed,
                      days_indoors, mental_health_history, care_options, model):
 
+    days_indoors_binary = 1 if days_indoors > 45 else 0
+
     input_data = {
         'family_history': [family_history],
         'Growing_Stress': [growing_stress],
@@ -28,9 +29,8 @@ def preprocess_input(family_history, growing_stress, changes_habits, mood_swings
         'Work_Interest': [work_interest],
         'Social_Weakness': [social_weakness],
         'self_employed': [self_employed],
-        'Days_Indoors': [days_indoors],
+        'Days_Indoors': [days_indoors_binary],
         'Mental_Health_History': [mental_health_history],
-        'mental_health_interview': ['Yes'],
         'care_options': [care_options]
     }
 

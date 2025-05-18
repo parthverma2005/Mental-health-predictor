@@ -3,14 +3,14 @@ import pandas as pd
 from utils import preprocess_input, load_model
 import plotly.express as px
 
-# Load the model
 model = load_model("models/mental_health_model.pkl")
 
-# Check login session
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 
-# Login page
+if 'risk_history' not in st.session_state:
+    st.session_state.risk_history = []
+
 if not st.session_state.logged_in:
     st.set_page_config(page_title="Login | Mental Health App", layout="centered")
     st.title("🔐 Login to Access the Mental Health Risk Predictor")
@@ -54,10 +54,22 @@ else:
         prediction = model.predict([features])[0]
         proba = model.predict_proba([features])[0][1]
 
+        st.session_state.risk_history.append(proba)
+
         if prediction == 0:
             st.success(f"✅ Low Risk ({proba:.2%} probability of risk)")
         else:
             st.warning(f"⚠️ High Risk ({proba:.2%} probability of risk)")
+
+        df_history = pd.DataFrame({
+            "Prediction #": list(range(1, len(st.session_state.risk_history) + 1)),
+            "Risk Probability": st.session_state.risk_history
+        })
+
+        fig_line = px.line(df_history, x="Prediction #", y="Risk Probability",
+                           title="📈 Mental Health Risk Probability Over Time",
+                           markers=True, range_y=[0, 1])
+        st.plotly_chart(fig_line)
 
         input_summary = {
             "Family History": 1 if family_history == "Yes" else 0,
@@ -68,11 +80,11 @@ else:
             "Interest in Work": 1 if work_interest == "Yes" else 0,
             "Social Weakness": 1 if social_weakness == "Yes" else 0,
             "Self Employed": 1 if self_employed == "Yes" else 0,
-            "Days Indoors (>45)": 1 if days_indoors > 45 else 0,
+            "Days Indoors": days_indoors,
             "Mental Health History": 1 if mental_health_history == "Yes" else 0,
             "Care Options": 1 if care_options == "Yes" else 0
         }
 
         df_chart = pd.DataFrame(input_summary.items(), columns=["Factor", "Value"])
-        fig = px.bar(df_chart, x="Factor", y="Value", title="Your Mental Health Risk Factors", color="Value", height=400)
-        st.plotly_chart(fig)
+        fig_bar = px.bar(df_chart, x="Factor", y="Value", title="🧾 Current Input Factors", color="Value", height=400)
+        st.plotly_chart(fig_bar)
