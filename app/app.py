@@ -4,16 +4,20 @@ from utils import preprocess_input, load_model
 import plotly.express as px
 
 # Load model once
-model = load_model("models/mental_health_model.pkl")
+model = load_model("../models/mental_health_model.pkl")
 
+# Page config setup
+st.set_page_config(page_title="Mental Health Predictor", layout="centered")
+
+# Session state for login and history
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 
 if 'risk_history' not in st.session_state:
     st.session_state.risk_history = []
 
+# Login page
 if not st.session_state.logged_in:
-    st.set_page_config(page_title="Login | Mental Health App", layout="centered")
     st.title("🔐 Login to Access the Mental Health Risk Predictor")
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
@@ -24,14 +28,16 @@ if not st.session_state.logged_in:
     if st.button("Login"):
         if username == correct_username and password == correct_password:
             st.session_state.logged_in = True
-            st.experimental_rerun()
+            st.rerun()
         else:
             st.error("Incorrect username or password. Please try again.")
+
+# Main predictor page
 else:
-    st.set_page_config(page_title="🧠 Mental Health Predictor", layout="centered")
     st.title("🧠 Mental Health Risk Predictor")
     st.markdown("This tool helps assess mental health risk based on daily life factors.")
 
+    # Inputs
     family_history = st.selectbox("Family History of Mental Illness?", ["Yes", "No"])
     growing_stress = st.selectbox("Growing Stress?", ["Yes", "No"])
     changes_habits = st.selectbox("Changes in Habits?", ["Yes", "No"])
@@ -61,6 +67,25 @@ else:
         else:
             st.warning(f"⚠️ High Risk ({proba:.2%} probability of risk)")
 
+            st.markdown("""
+            ---
+            ### 💡 Helpful Resources and Tips
+            If you're experiencing stress, anxiety, or mental health challenges, consider the following:
+
+            - 🧑‍⚕️ **Talk to a professional** (therapist, counselor, psychologist)
+            - 📞 **Helplines**:
+                - **National Suicide Prevention Lifeline** (US): 1-800-273-8255
+                - **Crisis Text Line**: Text **HOME** to **741741**
+            - 🌐 **Online Support**:
+                - [Mental Health America](https://www.mhanational.org/)
+                - [BetterHelp](https://www.betterhelp.com/)
+            - 🧘 **Practice mindfulness**, journaling, or regular physical activity
+            - 👥 **Connect with friends and loved ones** regularly
+
+            You're not alone—getting support is a sign of strength.
+            """)
+
+        # Chart for probability history
         df_history = pd.DataFrame({
             "Prediction #": list(range(1, len(st.session_state.risk_history) + 1)),
             "Risk Probability": st.session_state.risk_history
