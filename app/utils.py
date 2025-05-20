@@ -4,7 +4,7 @@ import os
 import gdown
 
 def load_model(model_path):
-    file_id = "1rilOLNgoYXwarzT2XhWulzwyKiO7D5z5a"  # Update if needed
+    file_id = "1rilOLNgoYXwarzT2XhWulzwyKiO7D5z5"  # Update if neededhttps://drive.google.com/file/d/1rilOLNgoYXwarzT2XhWulzwyKiO7D5z5/view?usp=sharing
     if not os.path.exists(model_path):
         os.makedirs(os.path.dirname(model_path), exist_ok=True)
         url = f"https://drive.google.com/uc?id={file_id}"
