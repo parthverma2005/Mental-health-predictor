@@ -3,6 +3,7 @@ import pandas as pd
 from utils import preprocess_input, load_model
 import plotly.express as px
 
+# Load model once
 model = load_model("models/mental_health_model.pkl")
 
 if 'logged_in' not in st.session_state:
@@ -23,10 +24,9 @@ if not st.session_state.logged_in:
     if st.button("Login"):
         if username == correct_username and password == correct_password:
             st.session_state.logged_in = True
-            st.success("Login successful! Please reload the page.")
+            st.experimental_rerun()
         else:
             st.error("Incorrect username or password. Please try again.")
-
 else:
     st.set_page_config(page_title="🧠 Mental Health Predictor", layout="centered")
     st.title("🧠 Mental Health Risk Predictor")
@@ -70,21 +70,3 @@ else:
                            title="📈 Mental Health Risk Probability Over Time",
                            markers=True, range_y=[0, 1])
         st.plotly_chart(fig_line)
-
-        input_summary = {
-            "Family History": 1 if family_history == "Yes" else 0,
-            "Growing Stress": 1 if growing_stress == "Yes" else 0,
-            "Changes in Habits": 1 if changes_habits == "Yes" else 0,
-            "Mood Swings": 1 if mood_swings == "Yes" else 0,
-            "Coping Struggles": 1 if coping_struggles == "Yes" else 0,
-            "Interest in Work": 1 if work_interest == "Yes" else 0,
-            "Social Weakness": 1 if social_weakness == "Yes" else 0,
-            "Self Employed": 1 if self_employed == "Yes" else 0,
-            "Days Indoors": days_indoors,
-            "Mental Health History": 1 if mental_health_history == "Yes" else 0,
-            "Care Options": 1 if care_options == "Yes" else 0
-        }
-
-        df_chart = pd.DataFrame(input_summary.items(), columns=["Factor", "Value"])
-        fig_bar = px.bar(df_chart, x="Factor", y="Value", title="🧾 Current Input Factors", color="Value", height=400)
-        st.plotly_chart(fig_bar)
