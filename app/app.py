@@ -4,7 +4,7 @@ from utils import preprocess_input, load_model
 import plotly.express as px
 
 # Load model once
-model = load_model("../models/mental_health_model.pkl")
+model = load_model("../models/xgb_mental_health_model.pkl")
 
 # Page config setup
 st.set_page_config(page_title="Mental Health Predictor", layout="centered")
