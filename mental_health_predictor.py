@@ -10,16 +10,12 @@ import os
 df = pd.read_csv("data/Mental Health Dataset.csv")
 df = df[['family_history', 'Growing_Stress', 'Changes_Habits',
          'Mood_Swings', 'Coping_Struggles', 'Work_Interest',
-         'Social_Weakness', 'treatment', 'self_employed', 'Days_Indoors',
+         'Social_Weakness', 'treatment', 'self_employed',
          'Mental_Health_History', 'mental_health_interview', 'care_options']].dropna()
 
 # Convert Yes/No to binary
 binary_cols = df.columns[df.isin(['Yes', 'No']).any()]
 df[binary_cols] = df[binary_cols].applymap(lambda x: 1 if x == 'Yes' else 0)
-
-# Binarize Days_Indoors
-df['Days_Indoors'] = pd.to_numeric(df['Days_Indoors'], errors='coerce').fillna(0)
-df['Days_Indoors'] = df['Days_Indoors'].apply(lambda x: 1 if x > 45 else 0)
 
 # One-hot encoding if needed
 df = pd.get_dummies(df)

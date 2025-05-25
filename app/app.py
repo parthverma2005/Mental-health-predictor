@@ -2,38 +2,41 @@ import streamlit as st
 import pandas as pd
 from utils import preprocess_input, load_model
 import plotly.express as px
+import smtplib
+from email.mime.text import MIMEText
 
-# Load model once
+# Load model
 model = load_model("../models/xgb_mental_health_model.pkl")
 
-# Page config setup
-st.set_page_config(page_title="Mental Health Predictor", layout="centered")
-
-# Session state for login and history
+# Session state for login
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 
-if 'risk_history' not in st.session_state:
-    st.session_state.risk_history = []
-
-# Login page
 if not st.session_state.logged_in:
-    st.title("🔐 Login to Access the Mental Health Risk Predictor")
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
+    st.title("🔐 Login to Mental Health Risk Predictor")
 
-    correct_username = "user"
-    correct_password = "password123"
+    with st.form("login_form"):
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+        email = st.text_input("Your Gmail (to receive report)")
+        submit = st.form_submit_button("Login")
 
-    if st.button("Login"):
-        if username == correct_username and password == correct_password:
+    # Dummy credentials
+    valid_username = "user"
+    valid_password = "password123"
+
+    if submit:
+        if username == valid_username and password == valid_password:
             st.session_state.logged_in = True
+            st.session_state.username = username
+            st.session_state.email = email
+            st.success("Login successful!")
             st.rerun()
         else:
-            st.error("Incorrect username or password. Please try again.")
+            st.error("Incorrect username or password.")
 
-# Main predictor page
-else:
+# Main app content after login
+if st.session_state.logged_in:
     st.title("🧠 Mental Health Risk Predictor")
     st.markdown("This tool helps assess mental health risk based on daily life factors.")
 
@@ -46,15 +49,18 @@ else:
     work_interest = st.selectbox("Interest in Work?", ["Yes", "No"])
     social_weakness = st.selectbox("Social Weakness?", ["Yes", "No"])
     self_employed = st.selectbox("Self Employed?", ["Yes", "No"])
-    days_indoors = st.slider("🕒 Days Spent Indoors", min_value=0, max_value=90, value=15, step=1)
     mental_health_history = st.selectbox("Mental Health History?", ["Yes", "No"])
     care_options = st.selectbox("Care Options Available?", ["Yes", "No"])
+
+    if "risk_history" not in st.session_state:
+        st.session_state.risk_history = []
 
     if st.button("Predict"):
         features = preprocess_input(
             family_history, growing_stress, changes_habits, mood_swings,
             coping_struggles, work_interest, social_weakness, self_employed,
-            days_indoors, mental_health_history, care_options, model
+            # Days Indoors removed
+            mental_health_history, care_options, model
         )
 
         prediction = model.predict([features])[0]
@@ -63,29 +69,21 @@ else:
         st.session_state.risk_history.append(proba)
 
         if prediction == 0:
-            st.success(f"✅ Low Risk ({proba:.2%} probability of risk)")
+            result = f"✅ Low Risk ({proba:.2%} probability of risk)"
+            st.success(result)
         else:
-            st.warning(f"⚠️ High Risk ({proba:.2%} probability of risk)")
+            result = f"⚠️ High Risk ({proba:.2%} probability of risk)"
+            st.warning(result)
+            st.markdown("""### 💡 Helpful Resources and Recommendations
 
-            st.markdown("""
-            ---
-            ### 💡 Helpful Resources and Tips
-            If you're experiencing stress, anxiety, or mental health challenges, consider the following:
+- Practice mindfulness, meditation, or other stress-relief techniques regularly.  
+- Communicate openly with trusted friends, family members, or support groups.  
+- Consider seeking professional guidance from mental health specialists when needed.  
+- Utilize available helplines and online counseling services for immediate support.  
 
-            - 🧑‍⚕️ **Talk to a professional** (therapist, counselor, psychologist)
-            - 📞 **Helplines**:
-                - **National Suicide Prevention Lifeline** (US): 1-800-273-8255
-                - **Crisis Text Line**: Text **HOME** to **741741**
-            - 🌐 **Online Support**:
-                - [Mental Health America](https://www.mhanational.org/)
-                - [BetterHelp](https://www.betterhelp.com/)
-            - 🧘 **Practice mindfulness**, journaling, or regular physical activity
-            - 👥 **Connect with friends and loved ones** regularly
+Remember, prioritizing your mental health is a sign of strength and resilience.""")
 
-            You're not alone—getting support is a sign of strength.
-            """)
-
-        # Chart for probability history
+        # Risk line chart
         df_history = pd.DataFrame({
             "Prediction #": list(range(1, len(st.session_state.risk_history) + 1)),
             "Risk Probability": st.session_state.risk_history
@@ -95,3 +93,26 @@ else:
                            title="📈 Mental Health Risk Probability Over Time",
                            markers=True, range_y=[0, 1])
         st.plotly_chart(fig_line)
+
+        # ✉️ Send Gmail report
+        try:
+            sender_email = "vermaparth2005@gmail.com"         # Replace with your Gmail
+            sender_password = "slrb huyj azcz wmgz"        # App password from Google
+            receiver_email = st.session_state.email
+
+            message = MIMEText(f"Hello {st.session_state.username},\n\nYour recent mental health risk result is:\n{result}")
+            message["Subject"] = "🧠 Mental Health Risk Report"
+            message["From"] = sender_email
+            message["To"] = receiver_email
+
+            with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+                server.login(sender_email, sender_password)
+                server.send_message(message)
+
+            st.info(f"📩 Report sent to {receiver_email}")
+        except Exception as e:
+            st.error(f"Email failed to send: {e}")
+
+    if st.button("Logout"):
+        st.session_state.logged_in = False
+        st.rerun()
